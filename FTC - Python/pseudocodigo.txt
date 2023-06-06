@@ -1,0 +1,138 @@
+a. 
+var 
+    x, y, soma
+inicio
+    leia x
+    leia y
+
+    soma <- x + y
+    escrever soma
+fim
+
+b.
+var 
+    nome
+inicio
+    leia nome
+    se nome igual pedro
+        escreva "bom dia pedro"
+    senao
+        escreva "bom dia meigarom"
+fim
+
+c.
+var 
+    x, y, z, soma
+inicio
+    leia x,y,z
+    soma <- x + y + z
+    escreva soma
+fim
+
+d.
+var 
+    x, y, media_aritmetica
+inicio
+    leia x,y
+
+    media_aritmetica <- (x + y)/ 2
+    escreva media_aritmetica
+fim
+
+e.
+var
+    x, y, z, media_aritmetica
+inicio
+    leia x,y,z
+    media_aritmetica <- (x + y + z)/ 3
+    escreva media_aritmetica
+fim
+
+f.
+var 
+    idade
+inicio
+    leia idade
+    se idade > 18
+        escreva "maior de idade"
+    senao
+        escreva "menor de idade
+
+h.
+var 
+    numx, numy
+inicio
+    leia numx, numy
+
+    se x > y
+        escreva x
+    senao 
+        escreva y
+
+i.
+var
+    x, y, z
+inicio
+    leia x,y,z
+
+    se x > y
+        se x > z
+            escreva "x é o maior"
+        senao
+            escreva "z é o maior"
+    senao
+        se y > z
+            escreva "y é o maior"
+        senao
+            escreva "z é o maior"
+fim
+
+j. 
+var 
+    valor, resultado
+inicio
+    leia valor
+    se valor < 10
+        resultado = valor * 100
+    senao
+        resultado = valor + 10
+    
+    escreva valor
+
+fim
+
+Pseudocódigo do Problema de Negócio
+
+var
+   lista_restaurantes, localizacao_empresa, localizacao_restaurante, restaurante_selecionado
+inicio  
+    leia lista_restaurantes
+    leia localizacao_empresa
+
+    ate_que lista_restaurantes foram verificados efetue
+        recupera 1 resturante da lista_restaurantes
+
+        loc_restaurante <- realiza calculo da distancia
+        
+        se resturante é o mais proximo
+            restaurante_selecionado <- restaurante selecionado
+    
+    escreva "O restaurante selecionado é {restaurante_selecionado}
+fim
+
+
+Pseudocódigo calculadora
+
+var
+    valor, resultado
+inicio
+    leia valor
+    
+    se valor <= 5 entao
+        resultado = valor * 10
+    senao 
+        se valor <= 10
+            resultado = valor * 20
+        senao
+            resultado = valor + 100
+fim
