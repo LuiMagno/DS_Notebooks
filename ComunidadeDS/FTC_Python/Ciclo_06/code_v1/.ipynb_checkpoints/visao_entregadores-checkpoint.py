@@ -1,4 +1,4 @@
-# Bibliotecas
+# Libraries
 import re
 from haversine import haversine
 import pandas as pd
@@ -8,81 +8,52 @@ import streamlit as st
 from PIL import Image
 import folium
 from streamlit_folium import folium_static
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Funções
-# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-def clean_code(df):
-    """ Esta função tem a responsabilidade de limpar o dataframe
-        1. Remoção dos dados NaN
-        2. Mudança do tipo de coluna de dados
-        3. Remoção dos espaços das variáveis de texto
-        4. Formatação de coluna de datas
-        5. Limpeza da coluna de tempo (remoção do texto da variável numérica)
-        
-        Input: Dataframe
-        Output: Dataframe
-    """
-    # Convertendo colunas e retirando valores NaN
-    linhas_selecionadas = (df['Delivery_person_Age'] != 'NaN ')
-    df = df.loc[linhas_selecionadas, :].copy()
-
-    linhas_selecionadas = (df['Road_traffic_density'] != 'NaN ')
-    df = df.loc[linhas_selecionadas, :].copy()
-
-    linhas_selecionadas = (df['City'] != 'NaN ')
-    df = df.loc[linhas_selecionadas, :].copy()
-
-    linhas_selecionadas = (df['Festival'] != 'NaN ')
-    df = df.loc[linhas_selecionadas, :].copy()
-
-    df['Delivery_person_Age'] = df['Delivery_person_Age'].astype( int )
-
-    # Convertendo a coluna ratings de texto para numero decimal (float)
-    df['Delivery_person_Ratings'] = df['Delivery_person_Ratings'].astype( float )
-
-    # Convertendo a coluna order date de texto para data
-    df['Order_Date'] = pd.to_datetime(df['Order_Date'], format='%d-%m-%Y')
-
-    # Convertendo multiple_deliveries de textopara numero inteiro (int)
-    linhas_selecionadas = (df['multiple_deliveries'] != 'NaN ')
-    df = df.loc[linhas_selecionadas, :].copy()
-    df['multiple_deliveries'] = df['multiple_deliveries'].astype( int )
-
-    # Removendo os espaços dentro de string/texto/objeto
-    df.loc[:, 'ID'] = df.loc[:, 'ID'].str.strip()
-    df.loc[:, 'Road_traffic_density'] = df.loc[:, 'Road_traffic_density'].str.strip()
-    df.loc[:, 'Type_of_order'] = df.loc[:, 'Type_of_order'].str.strip()
-    df.loc[:, 'Type_of_vehicle'] = df.loc[:, 'Type_of_vehicle'].str.strip()
-    df.loc[:, 'City'] = df.loc[:, 'City'].str.strip()
-    df.loc[:, 'Festival'] = df.loc[:, 'Festival'].str.strip()
-
-    # Limpando a Coluna de time taken
-    df['Time_taken(min)'] = df['Time_taken(min)'].apply( lambda x: x.split( '(min)' )[1])
-    df['Time_taken(min)'] = df['Time_taken(min)'].astype( int )
-    
-    return df
-# Retornar melhores entregadores por cidade
-def top_delivers(df, top_asc):
-    df_slowest_delivery_city = (df.loc[:, ['Delivery_person_ID', 'City', 'Time_taken(min)']]
-                                .groupby(['City', 'Delivery_person_ID'])
-                                .mean()
-                                .sort_values(['City', 'Time_taken(min)'], ascending=top_asc).reset_index())
-
-    df_aux01 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Metropolitian', :].head(10)
-    df_aux02 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Urban', :].head(10)
-    df_aux03 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Semi-Urban', :].head(10)
-
-    df_new = pd.concat([df_aux01, df_aux02, df_aux03]).reset_index()
-
-    return df_new
 # Dataset
 df_root = pd.read_csv('C:/Users/lui-m/Documents/GitHub/DS_Notebooks/ComunidadeDS/FTC_Python/datasets/train.csv')
 
 # Fazendo cópia do dataframe lido
 df = df_root.copy()
 
-# Limpandando Dataset
-df = clean_code(df)
+# Convertendo colunas e retirando valores NaN
+linhas_selecionadas = (df['Delivery_person_Age'] != 'NaN ')
+df = df.loc[linhas_selecionadas, :].copy()
+
+linhas_selecionadas = (df['Road_traffic_density'] != 'NaN ')
+df = df.loc[linhas_selecionadas, :].copy()
+
+linhas_selecionadas = (df['City'] != 'NaN ')
+df = df.loc[linhas_selecionadas, :].copy()
+
+linhas_selecionadas = (df['Festival'] != 'NaN ')
+df = df.loc[linhas_selecionadas, :].copy()
+
+df['Delivery_person_Age'] = df['Delivery_person_Age'].astype( int )
+
+# Convertendo a coluna ratings de texto para numero decimal (float)
+df['Delivery_person_Ratings'] = df['Delivery_person_Ratings'].astype( float )
+
+# Convertendo a coluna order date de texto para data
+df['Order_Date'] = pd.to_datetime(df['Order_Date'], format='%d-%m-%Y')
+
+# Convertendo multiple_deliveries de textopara numero inteiro (int)
+linhas_selecionadas = (df['multiple_deliveries'] != 'NaN ')
+df = df.loc[linhas_selecionadas, :].copy()
+df['multiple_deliveries'] = df['multiple_deliveries'].astype( int )
+
+# Removendo os espaços dentro de string/texto/objeto
+df.loc[:, 'ID'] = df.loc[:, 'ID'].str.strip()
+df.loc[:, 'Road_traffic_density'] = df.loc[:, 'Road_traffic_density'].str.strip()
+df.loc[:, 'Type_of_order'] = df.loc[:, 'Type_of_order'].str.strip()
+df.loc[:, 'Type_of_vehicle'] = df.loc[:, 'Type_of_vehicle'].str.strip()
+df.loc[:, 'City'] = df.loc[:, 'City'].str.strip()
+df.loc[:, 'Festival'] = df.loc[:, 'Festival'].str.strip()
+
+# Limpando a Coluna de time taken
+df['Time_taken(min)'] = df['Time_taken(min)'].apply( lambda x: x.split( '(min)' )[1])
+df['Time_taken(min)'] = df['Time_taken(min)'].astype( int )
+
+
+# Visão da Empresa
 
 #====================================================
 # Barra Lateral
@@ -103,6 +74,8 @@ date_slider = st.sidebar.slider('Até qual valor?', value=pd.datetime(2022, 4 , 
                  min_value=pd.datetime(2022, 2 , 11),
                  max_value=pd.datetime(2022, 4, 6),
                  format='DD-MM-YYYY')
+#st.metric(label="Data", value=date_slider)
+
 
 st.sidebar.markdown("""---""")
 
@@ -119,7 +92,6 @@ df = df.loc[linhas_selecionadas, :]
 # Filtro de transito
 linhas_selecionadas = df['Road_traffic_density'].isin(traffic_options)
 df = df.loc[linhas_selecionadas, :]
-
 #====================================================
 # Layout no Streamlit
 #====================================================
@@ -198,11 +170,29 @@ with tab1:
         
         with col1:
             st.markdown('##### Top entregadores mais rápidos')
-            df_aux = top_delivers(df, True)
-            st.dataframe(df_aux)
-                                  
+            df_fastest_delivery_city = (df.loc[:, ['Delivery_person_ID', 'City', 'Time_taken(min)']]
+                                        .groupby(['City', 'Delivery_person_ID'])
+                                        .mean()
+                                        .sort_values(['City', 'Time_taken(min)'], ascending=True).reset_index())
+            
+            df_aux01 = df_fastest_delivery_city.loc[df_fastest_delivery_city['City'] == 'Metropolitian', :].head(10)
+            df_aux02 = df_fastest_delivery_city.loc[df_fastest_delivery_city['City'] == 'Urban', :].head(10)
+            df_aux03 = df_fastest_delivery_city.loc[df_fastest_delivery_city['City'] == 'Semi-Urban', :].head(10)
+            
+            df_new = pd.concat([df_aux01, df_aux02, df_aux03]).reset_index()
+            
+            st.dataframe(df_new)
         with col2:
             st.markdown('##### Top entregadores mais lentos')
-            df_aux = top_delivers(df, False)
-            st.dataframe(df_aux)
+            df_slowest_delivery_city = (df.loc[:, ['Delivery_person_ID', 'City', 'Time_taken(min)']]
+                                        .groupby(['City', 'Delivery_person_ID'])
+                                        .mean()
+                                        .sort_values(['City', 'Time_taken(min)'], ascending=False).reset_index())
             
+            df_aux01 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Metropolitian', :].head(10)
+            df_aux02 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Urban', :].head(10)
+            df_aux03 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Semi-Urban', :].head(10)
+            
+            df_new = pd.concat([df_aux01, df_aux02, df_aux03]).reset_index()
+            
+            st.dataframe(df_new)
