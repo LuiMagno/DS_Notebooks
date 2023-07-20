@@ -1,4 +1,4 @@
-# Libraries
+# Bibliotecas
 import re
 from haversine import haversine
 import pandas as pd
@@ -9,6 +9,7 @@ from PIL import Image
 import folium
 from streamlit_folium import folium_static
 
+st. set_page_config(page_title = 'Visão Entregadores', page_icon='🦲', layout='wide')
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Funções
 # -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -62,90 +63,28 @@ def clean_code(df):
     df['Time_taken(min)'] = df['Time_taken(min)'].astype( int )
     
     return df
+# Retornar melhores entregadores por cidade
+def top_delivers(df, top_asc):
+    df_slowest_delivery_city = (df.loc[:, ['Delivery_person_ID', 'City', 'Time_taken(min)']]
+                                .groupby(['City', 'Delivery_person_ID'])
+                                .mean()
+                                .sort_values(['City', 'Time_taken(min)'], ascending=top_asc).reset_index())
 
-# Pedidos por dia
-def order_metric(df):
-            # colunas
-            cols = ['ID', 'Order_Date']
+    df_aux01 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Metropolitian', :].head(10)
+    df_aux02 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Urban', :].head(10)
+    df_aux03 = df_slowest_delivery_city.loc[df_slowest_delivery_city['City'] == 'Semi-Urban', :].head(10)
 
-            df_pedidos_dia = (df.loc[:, cols]
-                                .groupby(['Order_Date'])
-                                .count()
-                                .reset_index())
-            df_pedidos_dia.head()
+    df_new = pd.concat([df_aux01, df_aux02, df_aux03]).reset_index()
 
-            # Desenhar o gráfico de linhas
-            # Plotly
-            fig = px.bar(df_pedidos_dia, x = 'Order_Date', y = 'ID')
-            return fig
-
-# Porcentagem de tráfego  
-def traffic_order_share(df): 
-    cols = ['ID', 'Road_traffic_density']
-
-    df_pedidos_trafego = df.loc[:, cols].groupby(['Road_traffic_density']).count().reset_index()
-
-    df_pedidos_trafego['entregas_perc'] = df_pedidos_trafego['ID'] / df_pedidos_trafego['ID'].sum()
-
-    fig = px.pie(df_pedidos_trafego, values='entregas_perc', names='Road_traffic_density')
-
-    return fig
-# Tráfego por cidade
-def traffic_order_city(df):
-    df_aux = df.loc[:, ['ID', 'City', 'Road_traffic_density']].groupby(['City', 'Road_traffic_density']).count().reset_index()
-    
-    # Fazendo um gráfico de bolhas
-    fig = px.scatter(df_aux, x = 'City', y = 'Road_traffic_density', size='ID', color='City')
-    return fig
-
-# Pedidos por semana
-def order_by_week(df):
-    # criar a coluna semana
-    df['week_of_year'] = df['Order_Date'].dt.strftime('%U')
-
-    # Groupby de entregas por semana
-    cols = ['ID', 'week_of_year']
-
-    df_pedidos_semana = df.loc[:, cols].groupby(['week_of_year']).count().reset_index()
-
-    # Desenhando o gráfico
-    fig = px.line(df_pedidos_semana, x = 'week_of_year', y = 'ID')
-
-    return fig
-
-def order_by_week_person(df):       
-    # Quantidade de pedidos dividos pelo número único de entregadores por semana
-    df_aux01 = df.loc[:, ['ID', 'week_of_year']].groupby(['week_of_year']).count().reset_index()
-    df_aux02 = df.loc[:, ['Delivery_person_ID', 'week_of_year']].groupby(['week_of_year']).nunique().reset_index()
-
-    # Juntar 2 dataframes
-    df_aux = pd.merge(df_aux01, df_aux02, how='inner')
-    df_aux['order_by_deliver'] = df_aux['ID'] / df_aux['Delivery_person_ID'] 
-
-    fig = px.line(df_aux, x = 'week_of_year', y='order_by_deliver')
-
-    return fig
-
-def country_maps(df):
-        cols = ['City', 'Road_traffic_density', 'Delivery_location_latitude', 'Delivery_location_longitude']
-        df_aux = df.loc[:, cols].groupby(['City','Road_traffic_density']).median().reset_index()
-
-        map = folium.Map()
-        for index, location_info in df_aux.iterrows():
-            folium.Marker([location_info['Delivery_location_latitude'],
-                          location_info['Delivery_location_longitude']],
-                          popup=location_info[['City', 'Road_traffic_density']]).add_to(map)
-        folium_static(map, width=1024, height=600)
-        
-# ----------------------------------------------- Início da estrutura lógica do código -------------------------------------------------------- #
-# Importando Dataset
+    return df_new
+# Dataset
 df_root = pd.read_csv('C:/Users/lui-m/Documents/GitHub/DS_Notebooks/ComunidadeDS/FTC_Python/datasets/train.csv')
 
 # Fazendo cópia do dataframe lido
 df = df_root.copy()
 
-# Limpando dados
-df = clean_code( df )
+# Limpandando Dataset
+df = clean_code(df)
 
 #====================================================
 # Barra Lateral
@@ -166,14 +105,12 @@ date_slider = st.sidebar.slider('Até qual valor?', value=pd.datetime(2022, 4 , 
                  min_value=pd.datetime(2022, 2 , 11),
                  max_value=pd.datetime(2022, 4, 6),
                  format='DD-MM-YYYY')
-#st.metric(label="Data", value=date_slider)
-
 
 st.sidebar.markdown("""---""")
 
 traffic_options = st.sidebar.multiselect('Quais as condições de trânsito?',
                       ['Low', 'Medium', 'High', 'Jam'],
-                      default = 'Low')
+                      default = ['Low', 'Medium', 'High', 'Jam'])
 st.sidebar.markdown("""---""")
 st.sidebar.markdown('Powerd by Comunidade DS')
 
@@ -188,45 +125,86 @@ df = df.loc[linhas_selecionadas, :]
 #====================================================
 # Layout no Streamlit
 #====================================================
-st.header('Marketplace - Visão Cliente')
+st.header('Marketplace - Visão Entregadores')
 
-
-# Criando tabs
-tab1, tab2, tab3 = st.tabs(['Visão Gerencial', 'Visão Tática', 'Visão Geográfica'])
+tab1, tab2, tab3 = st.tabs(['Visão Gerencial', '_', '_'])
 
 with tab1:
     with st.container():
-        # Order metric
-        # 1. Qual a quantidade de pedidos por dia?
-        st.markdown('# Orders by Day')
-        fig  = order_metric(df)
-        st.plotly_chart(fig, use_container_width = True)
-    
+        st.title('Overall Metrics')
+        
+        col1, col2, col3, col4 = st.columns(4, gap='large')
+        with col1:
+            # A maior idade dos entregadores
+            maior_idade = df['Delivery_person_Age'].max()
+            col1.metric('Maior idade', maior_idade)
+            
+        with col2:
+            # A menor idade dos entregadores
+            menor_idade = df['Delivery_person_Age'].min()
+            col2.metric('Menor idade', menor_idade)
+            
+        with col3:
+            # A melhor condição de veículos
+            melhor_condicao = df['Vehicle_condition'].max()
+            col3.metric('Melhor condição de veículos', melhor_condicao)
+            
+        with col4:
+            # A pior condição de veículos
+            pior_condicao = df['Vehicle_condition'].min()
+            col4.metric('Pior condição de veículos', pior_condicao)
+        
     with st.container():
+        st.markdown("""---""")
+        st.title('Avaliações')
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown('# Traffic Order Share')
-            fig = traffic_order_share(df)
-            st.plotly_chart(fig, use_container_width = True)
+            st.markdown('##### Avaliação média por entregador')
+            df_average_ratings_by_deliveries = (df.loc[:, ['Delivery_person_ID', 'Delivery_person_Ratings']]
+                                                .groupby(['Delivery_person_ID'])
+                                                .mean()
+                                                .reset_index())
+            st.dataframe(df_average_ratings_by_deliveries)
             
         with col2:
-            st.markdown('# Traffic Order City')
-            fig = traffic_order_city(df)
-            st.plotly_chart(fig, use_container_width = True)
-           
-with tab2: 
+            st.markdown('##### Avaliação média por trânsito')
+            df_avg_std_rating_by_traffic = (df.loc[:, ['Delivery_person_Ratings', 'Road_traffic_density']]
+                                            .groupby(['Road_traffic_density'])
+                                            .agg({'Delivery_person_Ratings': ['mean', 'std']}))
+
+            # Mudando nomes das colunas
+            df_avg_std_rating_by_traffic.columns = ['delivery_mean', 'delivery_std']
+
+            # Resetando o index
+            df_avg_std_rating_by_traffic = df_avg_std_rating_by_traffic.reset_index()
+            st.dataframe(df_avg_std_rating_by_traffic)
+            
+            st.markdown('##### Avaliação média por clima')
+            df_avg_std_rating_by_weather = (df.loc[:, ['Delivery_person_Ratings', 'Weatherconditions']]
+                                            .groupby(['Weatherconditions'])
+                                            .agg({'Delivery_person_Ratings' : ['mean', 'std']}))
+
+            # Mudando os nomes das colunas
+            df_avg_std_rating_by_weather.columns = ['weather_mean', 'weather_std']
+
+            # Resetando index
+            df_avg_std_rating_by_weather = df_avg_std_rating_by_weather.reset_index()
+            st.dataframe(df_avg_std_rating_by_weather)
+            
     with st.container():
-        st.markdown('# Order By Week')
-        fig = order_by_week(df)
-        st.plotly_chart(fig, use_container_width = True)
+        st.markdown("""---""")
+        st.title('Velocidade de Entrega')
         
-    with st.container():
-        st.markdown('# Order By Week per Delivery Person')
-        fig = order_by_week_person(df)
-        st.plotly_chart(fig, use_container_width = True)
+        col1, col2 = st.columns(2)
         
-with tab3:
-    st.markdown('# Country Maps')
-    country_maps(df)
-    
+        with col1:
+            st.markdown('##### Top entregadores mais rápidos')
+            df_aux = top_delivers(df, True)
+            st.dataframe(df_aux)
+                                  
+        with col2:
+            st.markdown('##### Top entregadores mais lentos')
+            df_aux = top_delivers(df, False)
+            st.dataframe(df_aux)
+            
