@@ -78,7 +78,7 @@ def top_delivers(df, top_asc):
 
     return df_new
 # Dataset
-df_root = pd.read_csv('C:/Users/lui-m/Documents/GitHub/DS_Notebooks/ComunidadeDS/FTC_Python/datasets/train.csv')
+df_root = pd.read_csv('dataset/train.csv')
 
 # Fazendo cópia do dataframe lido
 df = df_root.copy()
@@ -90,9 +90,7 @@ df = clean_code(df)
 # Barra Lateral
 #====================================================
 
-
-image_path = 'eu.png'
-image = Image.open(image_path)
+image = Image.open('eu.png')
 
 st.sidebar.image(image, width = 120)
 st.sidebar.markdown('# Curry Company')
