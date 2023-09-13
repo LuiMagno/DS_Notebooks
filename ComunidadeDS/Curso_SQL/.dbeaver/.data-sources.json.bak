@@ -13,19 +13,6 @@
 				"type": "dev",
 				"auth-model": "native"
 			}
-		},
-		"sqlite_jdbc-18a7612cf0b-2f8de996d605a7cf": {
-			"provider": "sqlite",
-			"driver": "sqlite_jdbc",
-			"name": "db_olist.sqlite 2",
-			"save-password": true,
-			"configuration": {
-				"database": "C:\\Users\\lui-m\\Downloads\\db_olist.sqlite",
-				"url": "jdbc:sqlite:C:\\Users\\lui-m\\Downloads\\db_olist.sqlite",
-				"configurationType": "MANUAL",
-				"type": "dev",
-				"auth-model": "native"
-			}
 		}
 	},
 	"connection-types": {
